@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/monosolutions/wti-parser#readme",
   "engines": {
-    "node": ">= 4.0.0"
+    "node": ">= 6.0.0"
   },
   "keywords": [
     "wti",
