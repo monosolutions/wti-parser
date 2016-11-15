@@ -4,6 +4,8 @@ _by @cosminlupu_
 
 > For easy file sync to WebtranslateIt.com
 
+[![Build Status](https://travis-ci.org/monosolutions/wti-parser.svg?branch=master)](https://travis-ci.org/monosolutions/wti-parser) [![Coverage Status](https://coveralls.io/repos/github/monosolutions/wti-parser/badge.svg?branch=master)](https://coveralls.io/github/monosolutions/wti-parser?branch=master)
+
 * **GitHub:** <https://github.com/monosolutions/wti-parser>
 
 This project was manly created to have an NPM module for getting/sending translations to [webtranslateit.com](https://webtranslateit.com/), that also supports multiple projects per config. It was heavily inspired by [wti](https://github.com/AtelierConvivialite/webtranslateit), so you might want to check that repository out for a much more feature complete tool build with Ruby.
