@@ -1,0 +1,9 @@
+{
+    "projects": {
+        "project_testproject": {
+            "name": "Test project",
+            "api_key": "42c455k-mhbO00UkYhx_w"
+        }
+    },
+    "removeNullValues": true
+}

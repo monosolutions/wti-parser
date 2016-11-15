@@ -1,0 +1,42 @@
+{
+  "name": "wti-parser",
+  "version": "0.1.0",
+  "description": "A WebTranslateIt Syncronization tool build with Javascript with support for multiple projects",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./bin/cli.js",
+    "test": "istanbul cover _mocha -- --recursive",
+    "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+  },
+  "author": "Cosmin Lupu <cl@monosolutions.com>",
+  "license": "GPL",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/monosolutions/wti-parser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/monosolutions/wti-parser/issues"
+  },
+  "homepage": "https://github.com/monosolutions/wti-parser#readme",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "keywords": [
+    "wti",
+    "webtranslateit",
+    "translations"
+  ],
+  "dependencies": {
+    "colors": "^1.1.2",
+    "commander": "^2.9.0",
+    "fs-extra": "^1.0.0",
+    "inquirer": "^1.2.3",
+    "ora": "^0.3.0",
+    "request": "^2.78.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.1.2"
+  }
+}
