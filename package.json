@@ -1,6 +1,6 @@
 {
   "name": "wti-parser",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A WebTranslateIt Syncronization tool build with Javascript with support for multiple projects",
   "main": "index.js",
   "scripts": {
