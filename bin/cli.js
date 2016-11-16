@@ -11,7 +11,7 @@ let config = WTI.utils.getConfig();
  * Main program interface
  */
 program
-    .version('0.1.0')
+    .version('0.1.3')
     .description('A WebTranslateIt Syncronization tool build with Javascript with support for multiple projects')
     .usage('<command> [options]');
 
@@ -69,7 +69,7 @@ program
  */
 program
     .command('pull')
-    .description('Pull language files')
+    .description('Pull language files. If no locales are passed, we pull all locales except the master one.')
     .option("-p, --project [project]", "Project key from config you want to use command for")
     .option("-l, --locales [locale]", "Which locale should we pull. ")
     .action((options) => {
@@ -97,7 +97,7 @@ program
  */
 program
     .command('push')
-    .description('Pull language files')
+    .description('Pull language files. If no locales are passed, we push all locales except the master one.')
     .option("-p, --project [project]", "Project key from config you want to use command for")
     .option("-l, --locales [locale]", "Which locale should we push. ")
     .option("--master", "Only push the master locale")
