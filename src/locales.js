@@ -27,38 +27,50 @@ module.exports = {
             }
 
             let spinners = {};
+            let fileIndex = 0;
+            let timeout = 100;
 
-            //Loop files and download content
-            files.forEach( (file) => {
-                spinners[file.locale_code] = Utils.createSpinner(`Pulling file for ${file.locale_code} locale in ${file.name}`);
-                
-                Utils.get(`/files/${masterId}/locales/${file.locale_code}`)
-                .then( (result) => {
-
-                    //Remove null values
-                    if(config.removeNullValues){
-                        result = Utils.stripNullValues(result);
-                    }
-
-                    //Write file
-                    fs.outputFile(process.cwd() + `/${file.name}`, JSON.stringify(result, null, 4), (err) => {
-                        if(err){
-                            spinners[file.locale_code].fail();
-
-                            Utils.handleError({
-                                "error": `There was a problem writing ${file.name}`
-                            });
-                        } else {
-                            spinners[file.locale_code].succeed();
-                        }
-                    });
-                })
-                .catch( (err) => {
-                    spinners[file.locale_code].fail();
-                });
-            });
-
+            // Download the content for each file
+            this.getTranslatedFile(fileIndex, files, spinners, masterId, timeout);
         });
+    },
+
+    /**
+     * Recurrsively send GET requests with a timeout between them
+     */
+    getTranslatedFile: function(fileIndex, files, spinners, masterId, timeout) {
+        if (fileIndex >= files.length) return;
+        setTimeout(() => {
+            const file = files[fileIndex];
+            spinners[file.locale_code] = Utils.createSpinner(`Pulling file for ${file.locale_code} locale in ${file.name}`);
+
+            Utils.get(`/files/${masterId}/locales/${file.locale_code}`)
+            .then( (result) => {
+
+                //Remove null values
+                if(config.removeNullValues){
+                    result = Utils.stripNullValues(result);
+                }
+
+                //Write file
+                fs.outputFile(process.cwd() + `/${file.name}`, JSON.stringify(result, null, 4), (err) => {
+                    if(err){
+                        spinners[file.locale_code].fail();
+
+                        Utils.handleError({
+                            "error": `There was a problem writing ${file.name}`
+                        });
+                    } else {
+                        spinners[file.locale_code].succeed();
+                    }
+                });
+            })
+            .catch( (err) => {
+                spinners[file.locale_code].fail();
+            });
+            // call recursively with the next file
+            this.getTranslatedFile(++fileIndex, files, spinners, masterId, timeout);
+        }, timeout);
     },
 
     /**
