@@ -143,7 +143,8 @@ module.exports = {
             error += `${key.red}: ${obj[key]} \n`;
         }
 
-        console.log(error); 
+        console.log(error);
+        console.trace();
         process.exit(1);
     },
 
