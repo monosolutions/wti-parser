@@ -44,9 +44,8 @@ module.exports = {
                 result = await Utils.get(`/files/${masterId}/locales/${file.locale_code}`);
             } catch (err) {
                 spinners[file.locale_code].fail();
-                Utils.handleError({
-                    "error": `Failed to get results for ${file.name} due to ${err}`
-                });
+                console.log(`Failed to pull results for ${file.name}`);
+                continue;
             }
 
             if(config.removeNullValues){
@@ -58,9 +57,7 @@ module.exports = {
                 spinners[file.locale_code].succeed();
             } catch (err) {
                 spinners[file.locale_code].fail();
-                Utils.handleError({
-                    "error": `There was a problem writing ${file.name} due to ${err}`
-                });
+                console.log(`Failed to output result file for ${file.name}`);
             }
         }
     },

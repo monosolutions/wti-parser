@@ -144,7 +144,6 @@ module.exports = {
         }
 
         console.log(error);
-        console.trace();
         process.exit(1);
     },
 
