@@ -16,7 +16,9 @@ module.exports = {
         try {
             files = await this.getAllFiles();
         } catch (err) {
-            console.log(err);
+            Utils.handleError({
+                "error": err
+            });
         }
 
         let masterId = files.filter( f => f.master_project_file_id === null )[0].id;
@@ -41,7 +43,10 @@ module.exports = {
             try {
                 result = await Utils.get(`/files/${masterId}/locales/${file.locale_code}`);
             } catch (err) {
-                console.log(err);
+                spinners[file.locale_code].fail();
+                Utils.handleError({
+                    "error": `Failed to get results for ${file.name} due to ${err}`
+                });
             }
 
             if(config.removeNullValues){
@@ -54,7 +59,7 @@ module.exports = {
             } catch (err) {
                 spinners[file.locale_code].fail();
                 Utils.handleError({
-                    "error": `There was a problem writing ${file.name}`
+                    "error": `There was a problem writing ${file.name} due to ${err}`
                 });
             }
         }
