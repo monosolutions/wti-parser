@@ -11,66 +11,53 @@ module.exports = {
      * Pull a translation file
      * @param  {Array}   locales Locales to pull ( by default pulls all of them )
      */
-    pull: function(locales = []){
+    pull: async function(locales = []){
+        let files;
+        try {
+            files = await this.getAllFiles();
+        } catch (err) {
+            console.log(err);
+        }
+
+        let masterId = files.filter( f => f.master_project_file_id === null )[0].id;
+
+        //Filter locales to pull by the locales passed
+        if(locales.length){
+            files = files.filter( f => locales.indexOf(f.locale_code) > -1 );
         
-        this.getAllFiles()
-        .then( (files) => {
-            let masterId = files.filter( f => f.master_project_file_id === null )[0].id;
+        //If no locales passed we pull all locales but the master one
+        } else {
+            files = files.filter( f => f.id !== masterId );
+        }
 
-            //Filter locales to pull by the locales passed
-            if(locales.length){
-                files = files.filter( f => locales.indexOf(f.locale_code) > -1 );
-            
-            //If no locales passed we pull all locales but the master one
-            } else {
-                files = files.filter( f => f.id !== masterId );
-            }
+        let spinners = {};
 
-            let spinners = {};
-            let fileIndex = 0;
-            let timeout = 100;
-
-            // Download the content for each file
-            this.getTranslatedFile(fileIndex, files, spinners, masterId, timeout);
-        });
-    },
-
-    /**
-     * Recurrsively send GET requests with a timeout between them
-     */
-    getTranslatedFile: function(fileIndex, files, spinners, masterId, timeout) {
-        if (fileIndex >= files.length) return;
-        setTimeout(() => {
+        // Download the content for each file
+        for(let fileIndex = 0; fileIndex < files.length; fileIndex++) {
             const file = files[fileIndex];
             spinners[file.locale_code] = Utils.createSpinner(`Pulling file for ${file.locale_code} locale in ${file.name}`);
 
-            Utils.get(`/files/${masterId}/locales/${file.locale_code}`)
-            .then( (result) => {
+            let result;
+            try {
+                result = await Utils.get(`/files/${masterId}/locales/${file.locale_code}`);
+            } catch (err) {
+                console.log(err);
+            }
 
-                //Remove null values
-                if(config.removeNullValues){
-                    result = Utils.stripNullValues(result);
-                }
+            if(config.removeNullValues){
+                result = Utils.stripNullValues(result);
+            }
 
-                //Write file
-                fs.outputFile(process.cwd() + `/${file.name}`, JSON.stringify(result, null, 4), (err) => {
-                    if(err){
-                        spinners[file.locale_code].fail();
-
-                        Utils.handleError({
-                            "error": `There was a problem writing ${file.name}`
-                        });
-                    } else {
-                        spinners[file.locale_code].succeed();
-                    }
-                });
-            })
-            .catch( (err) => {
+            try {
+                fs.outputFileSync(process.cwd() + `/${file.name}`, JSON.stringify(result, null, 4));
+                spinners[file.locale_code].succeed();
+            } catch (err) {
                 spinners[file.locale_code].fail();
-            });
-            // call recursively with the next file
-            this.getTranslatedFile(++fileIndex, files, spinners, masterId, timeout);
-        }, timeout);
+                Utils.handleError({
+                    "error": `There was a problem writing ${file.name}`
+                });
+            }
+        }
     },
 
     /**
