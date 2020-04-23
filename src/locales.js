@@ -21,12 +21,12 @@ module.exports = {
             });
         }
 
-        let masterId = files.filter( f => f.master_project_file_id === null )[0].id;
+        const masterId = files.filter( f => f.master_project_file_id === null )[0].id;
 
         //Filter locales to pull by the locales passed
         if(locales.length){
             files = files.filter( f => locales.indexOf(f.locale_code) > -1 );
-        
+
         //If no locales passed we pull all locales but the master one
         } else {
             files = files.filter( f => f.id !== masterId );
@@ -76,7 +76,7 @@ module.exports = {
             //Filter locales to push by the locales passed
             if(locales.length){
                 files = files.filter( f => locales.indexOf(f.locale_code) > -1 );
-            
+
             //If no locales passed we push all locales but the master one
             } else {
                 files = files.filter( f => f.id !== masterId );
@@ -108,7 +108,7 @@ module.exports = {
 
     /**
      * Get all files for a project
-     * @return {Promise}         
+     * @return {Promise}
      */
     getAllFiles: function(){
         return new Promise((resolve, reject) => {
