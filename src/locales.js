@@ -11,54 +11,55 @@ module.exports = {
      * Pull a translation file
      * @param  {Array}   locales Locales to pull ( by default pulls all of them )
      */
-    pull: function(locales = []){
-        
-        this.getAllFiles()
-        .then( (files) => {
-            let masterId = files.filter( f => f.master_project_file_id === null )[0].id;
+    pull: async function(locales = []){
+        let files;
+        try {
+            files = await this.getAllFiles();
+        } catch (err) {
+            Utils.handleError({
+                "error": err
+            });
+        }
 
-            //Filter locales to pull by the locales passed
-            if(locales.length){
-                files = files.filter( f => locales.indexOf(f.locale_code) > -1 );
-            
-            //If no locales passed we pull all locales but the master one
-            } else {
-                files = files.filter( f => f.id !== masterId );
+        const masterId = files.filter( f => f.master_project_file_id === null )[0].id;
+
+        //Filter locales to pull by the locales passed
+        if(locales.length){
+            files = files.filter( f => locales.indexOf(f.locale_code) > -1 );
+
+        //If no locales passed we pull all locales but the master one
+        } else {
+            files = files.filter( f => f.id !== masterId );
+        }
+
+        let spinners = {};
+
+        // Download the content for each file
+        for(let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+            const file = files[fileIndex];
+            spinners[file.locale_code] = Utils.createSpinner(`Pulling file for ${file.locale_code} locale in ${file.name}`);
+
+            let result;
+            try {
+                result = await Utils.get(`/files/${masterId}/locales/${file.locale_code}`);
+            } catch (err) {
+                spinners[file.locale_code].fail();
+                console.log(`Failed to pull results for ${file.name}`);
+                continue;
             }
 
-            let spinners = {};
+            if(config.removeNullValues){
+                result = Utils.stripNullValues(result);
+            }
 
-            //Loop files and download content
-            files.forEach( (file) => {
-                spinners[file.locale_code] = Utils.createSpinner(`Pulling file for ${file.locale_code} locale in ${file.name}`);
-                
-                Utils.get(`/files/${masterId}/locales/${file.locale_code}`)
-                .then( (result) => {
-
-                    //Remove null values
-                    if(config.removeNullValues){
-                        result = Utils.stripNullValues(result);
-                    }
-
-                    //Write file
-                    fs.outputFile(process.cwd() + `/${file.name}`, JSON.stringify(result, null, 4), (err) => {
-                        if(err){
-                            spinners[file.locale_code].fail();
-
-                            Utils.handleError({
-                                "error": `There was a problem writing ${file.name}`
-                            });
-                        } else {
-                            spinners[file.locale_code].succeed();
-                        }
-                    });
-                })
-                .catch( (err) => {
-                    spinners[file.locale_code].fail();
-                });
-            });
-
-        });
+            try {
+                fs.outputFileSync(process.cwd() + `/${file.name}`, JSON.stringify(result, null, 4));
+                spinners[file.locale_code].succeed();
+            } catch (err) {
+                spinners[file.locale_code].fail();
+                console.log(`Failed to output result file for ${file.name}`);
+            }
+        }
     },
 
     /**
@@ -75,7 +76,7 @@ module.exports = {
             //Filter locales to push by the locales passed
             if(locales.length){
                 files = files.filter( f => locales.indexOf(f.locale_code) > -1 );
-            
+
             //If no locales passed we push all locales but the master one
             } else {
                 files = files.filter( f => f.id !== masterId );
@@ -107,7 +108,7 @@ module.exports = {
 
     /**
      * Get all files for a project
-     * @return {Promise}         
+     * @return {Promise}
      */
     getAllFiles: function(){
         return new Promise((resolve, reject) => {
