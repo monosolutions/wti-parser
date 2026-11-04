@@ -57,44 +57,64 @@ module.exports = {
   },
 
   /**
+   * Choose which project files a push uploads, and the file id each one targets.
+   * A master file has master_project_file_id === null. Its upload target is its own id.
+   * A translation targets master_project_file_id.
+   * With no locales and no master flag, every master is skipped.
+   * With the master flag, only masters are pushed. Locales then filter that set.
+   * @param  {Array}   files    Project files
+   * @param  {Array}   locales  Locale codes to include
+   * @param  {Boolean} master   Push only master files
+   * @return {Array}            Selected files and the id each upload targets
+   */
+  selectPushFiles: function (files, locales = [], master = false) {
+    let selected = files
+
+    if (master) {
+      selected = selected.filter((file) => file.master_project_file_id === null)
+    } else if (locales.length === 0) {
+      selected = selected.filter((file) => file.master_project_file_id !== null)
+    }
+
+    if (locales.length > 0) {
+      selected = selected.filter((file) => locales.includes(file.locale_code))
+    }
+
+    return selected.map((file) => {
+      return {
+        file,
+        targetId: file.master_project_file_id ?? file.id,
+      }
+    })
+  },
+
+  /**
    * Push a translation file
    * @param  {Array}   locales Locales to push ( by default pushes all of them )
    * @param  {Boolean} master  Should we only push master
    */
   push: function (locales = [], master = false) {
     this.getAllFiles().then((files) => {
-      let masterFile = files.find((f) => f.master_project_file_id === null),
-        masterId = masterFile.id
-
-      files =
-        locales.length > 0
-          ? files.filter((f) => locales.includes(f.locale_code))
-          : files.filter((f) => f.id !== masterId)
-
-      //Should we only push master
-      if (master) {
-        files = [masterFile]
-      }
-
+      let targets = this.selectPushFiles(files, locales, master)
       let spinners = {}
 
       //Loop files and push content
-      for (const file of files) {
-        spinners[file.locale_code] = Utils.createSpinner(
+      for (const { file, targetId } of targets) {
+        spinners[file.id] = Utils.createSpinner(
           `Pushing file for ${file.locale_code} : ${file.name}`,
         )
-        Utils.put(`/files/${masterId}/locales/${file.locale_code}`, {
+        Utils.put(`/files/${targetId}/locales/${file.locale_code}`, {
           file: fs.createReadStream(process.cwd() + `/${file.name}`),
         })
           .then(() => {
             spinners[
-              file.locale_code
+              file.id
             ].text = `File ${file.name} has been pushed to webtranslateit. It takes about 1 min for 1000 segments to be uploaded`
-            spinners[file.locale_code].succeed()
+            spinners[file.id].succeed()
           })
           .catch((error) => {
             console.log(error)
-            spinners[file.locale_code].fail()
+            spinners[file.id].fail()
           })
       }
     })
